@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDF Konvertáló</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="converter-container">
+        <h1>PDF/JPG Konvertáló</h1>
+        <p>Tölts fel egy fájlt a konvertáláshoz.</p>
+        
+        <div class="toggle-container">
+            <button class="toggle-btn active" id="pdfToJpg">PDF to JPG</button>
+            <button class="toggle-btn" id="jpgToPdf">JPG to PDF</button>
+        </div>
+
+        <input type="file" id="pdfInput" accept="application/pdf">
+        <button id="convertBtn">PDF konvertálása JPG-be</button>
+        
+        <div id="status" style="margin-top: 15px; font-size: 0.85rem;"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
