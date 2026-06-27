@@ -7,6 +7,7 @@ const status = document.getElementById('status');
 const convertBtn = document.getElementById('convertBtn');
 const pdfToJpgBtn = document.getElementById('pdfToJpg');
 const jpgToPdfBtn = document.getElementById('jpgToPdf');
+const imgToWebpBtn = document.getElementById('imgToWebp');
 let currentMode = 'pdfToJpg';
 
 // Fájl kiválasztásának visszajelzése
@@ -19,9 +20,11 @@ fileInput.addEventListener('change', () => {
 
 // Konvertálás indítása
 convertBtn.addEventListener('click', async () => {
+    
     if (fileInput.files.length === 0) {
         alert("Kérlek válassz ki egy fájlt!");
         return;
+        
     }
 
     convertBtn.disabled = true;
@@ -30,8 +33,10 @@ convertBtn.addEventListener('click', async () => {
     try {
         if (currentMode === 'pdfToJpg') {
             await handlePdfToJpg(fileInput.files[0]);
-        } else {
+        } else if (currentMode === 'jpgToPdf') {
             await handleJpgToPdf(fileInput.files[0]);
+        } else {
+            await handleImgToWebp(fileInput.files[0]); // Новий виклик
         }
     } catch (e) {
         status.innerText = "Hiba történt: " + e.message;
@@ -126,24 +131,77 @@ async function handleJpgToPdf(file) {
 // Üzemmód váltó logikája
 function setMode(mode) {
     currentMode = mode;
+    
+    // Скидаємо активний клас з усіх кнопок
+    pdfToJpgBtn.classList.remove('active');
+    jpgToPdfBtn.classList.remove('active');
+    imgToWebpBtn.classList.remove('active');
+
     if (mode === 'pdfToJpg') {
         pdfToJpgBtn.classList.add('active');
-        jpgToPdfBtn.classList.remove('active');
         fileInput.accept = "application/pdf";
         convertBtn.innerText = "PDF konvertálása JPG-be";
         status.innerText = "Mód: PDF -> JPG";
-    } else {
+    } else if (mode === 'jpgToPdf') {
         jpgToPdfBtn.classList.add('active');
-        pdfToJpgBtn.classList.remove('active');
         fileInput.accept = "image/jpeg, image/png";
         convertBtn.innerText = "Képek konvertálása PDF-be";
         status.innerText = "Mód: JPG -> PDF";
+    } else {
+        // Налаштування для WebP
+        imgToWebpBtn.classList.add('active');
+        fileInput.accept = "image/jpeg, image/png";
+        convertBtn.innerText = "Kép konvertálása WebP-be";
+        status.innerText = "Mód: IMG -> WebP";
     }
     fileInput.value = "";
     status.style.color = "#2d3436";
 }
 
+// Додаємо слухача для нової кнопки:
+imgToWebpBtn.addEventListener('click', () => setMode('imgToWebp'));
+
 pdfToJpgBtn.addEventListener('click', () => setMode('pdfToJpg'));
 jpgToPdfBtn.addEventListener('click', () => setMode('jpgToPdf'));
 
 setMode('pdfToJpg');
+
+// IMG -> WebP logika
+async function handleImgToWebp(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    ctx.drawImage(img, 0, 0);
+                    
+                    // Конвертація з якістю 80%
+                    const webpDataUrl = canvas.toDataURL('image/webp', 0.8);
+                    
+                    const link = document.createElement('a');
+                    link.href = webpDataUrl;
+                    
+                    // Зберігаємо оригінальну назву
+                    const baseName = file.name.split('.').slice(0, -1).join('.');
+                    link.download = `${baseName}.webp`;
+                    link.click();
+                    
+                    // Викликаємо стандартний екран успіху Somex
+                    showResult();
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            };
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
