@@ -3,28 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PDF Konvertáló</title>
+    <title>Fájl Konvertáló & QR Generátor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- QR kód könyvtár -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="converter-container">
-        <h1>Fájl Konvertáló</h1>
-        <p>Tölts fel egy fájlt a konvertáláshoz.</p>
+        <h1>Fájl Konvertáló & QR Generátor</h1>
+        <p>Válassz egy eszközt a folytatáshoz.</p>
 
         <div class="toggle-container">
             <button class="toggle-btn active" id="pdfToJpg">PDF to JPG</button>
             <button class="toggle-btn" id="jpgToPdf">JPG to PDF</button>
             <button class="toggle-btn" id="imgToWebp">IMG to WebP</button>
+            <!-- Új QR kód gomb -->
+            <button class="toggle-btn" id="qrModeBtn">QR Kód</button>
         </div>
-        <div id="resultContainer" style="display: none; margin-top: 20px;">
-    <h3>Konvertált fájl:</h3>
-    <img id="resultImage" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-</div>
 
-        <input type="file" id="pdfInput" accept="application/pdf">
-        <button id="convertBtn">PDF konvertálása JPG-be</button>
+        <div id="resultContainer" style="display: none; margin-top: 20px;">
+            <h3>Konvertált fájl:</h3>
+            <img id="resultImage" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        </div>
+
+        <!-- Fájl szekció (konvertáláshoz) -->
+        <div id="fileSection">
+            <input type="file" id="pdfInput" accept="application/pdf">
+            <button id="convertBtn">PDF konvertálása JPG-be</button>
+        </div>
+
+        <!-- QR szekció (generáláshoz) -->
+        <div id="qrSection" style="display: none;">
+            <input type="text" id="qrInputData" placeholder="Írd be a szöveget vagy linket..." 
+                   style="width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 20px; border: 2px solid var(--accent-gray); border-radius: 8px; font-family: 'Inter', sans-serif;">
+            
+            <button id="generateQrBtn" style="background-color: #27ae60; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer; transition: background 0.3s;">QR kód generálása</button>
+            
+            <div id="qrResult" style="display: none; margin-top: 20px; text-align: center;">
+                <div id="qrCodeImage" style="display: inline-block; padding: 10px; background: white; border-radius: 8px; margin-bottom: 15px;"></div>
+                <button id="downloadQrBtn" style="background-color: #2d3436; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer; transition: background 0.3s;">Mentés PNG-ként</button>
+            </div>
+        </div>
         
         <div id="status" style="margin-top: 15px; font-size: 0.85rem;"></div>
     </div>
