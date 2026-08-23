@@ -30,9 +30,14 @@
 
         <!-- Fájl szekció (konvertáláshoz) -->
         <div id="fileSection">
-            <input type="file" id="pdfInput" accept="application/pdf">
-            <button id="convertBtn">PDF konvertálása JPG-be</button>
-        </div>
+    <div id="dropZone" class="drop-zone">
+        <span class="drop-zone-text">Húzd ide a fájlt, vagy kattints a tallózáshoz!</span>
+        <!-- Elrejtett input, a kattintás ide irányít -->
+        <input type="file" id="pdfInput" accept="application/pdf" style="display: none;">
+    </div>
+    <div id="fileInfo" style="margin-bottom: 15px; font-size: 0.9rem; font-weight: bold;"></div>
+    <button id="convertBtn">PDF konvertálása JPG-be</button>
+</div>
 
         <!-- QR szekció (generáláshoz) -->
         <div id="qrSection" style="display: none;">

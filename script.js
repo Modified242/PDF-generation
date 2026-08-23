@@ -22,13 +22,47 @@ const downloadQrBtn = document.getElementById('downloadQrBtn');
 let currentMode = 'pdfToJpg';
 let currentQRCode = null;
 
-// Fájl kiválasztásának visszajelzése
-fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-        status.innerText = "Kiválasztott fájl: " + fileInput.files[0].name;
-        status.style.color = "#3498db";
+/// Új referenciák a Drag & Drop-hoz
+const dropZone = document.getElementById('dropZone');
+const fileInfo = document.getElementById('fileInfo');
+// A fileInput referenciád már megvan a kódodban!
+
+// 1. Kattintás a zónára (megnyitja a rejtett fájltallózót)
+dropZone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// 2. Drag & Drop vizuális effektek
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault(); // Fontos: Megakadályozza, hogy a böngésző megnyissa a fájlt!
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+
+    // Ha dobtak be fájlt, azt átadjuk a rejtett inputnak
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileInfo();
     }
 });
+
+// 3. Fájl kiválasztásának visszajelzése (akár kattintással, akár bedobással)
+fileInput.addEventListener('change', updateFileInfo);
+
+function updateFileInfo() {
+    if (fileInput.files.length > 0) {
+        fileInfo.innerText = "Kiválasztott fájl: " + fileInput.files[0].name;
+        fileInfo.style.color = "#27ae60"; // Zöld szín a sikerért
+        status.innerText = ""; // Töröljük a korábbi státuszt
+    }
+}
 
 // Üzemmód váltó logikája
 function setMode(mode) {

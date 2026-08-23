@@ -80,3 +80,24 @@ button#convertBtn {
 
 button#convertBtn:hover:not(:disabled) { background-color: #000; }
 button:disabled { opacity: 0.6; cursor: not-allowed; }
+/* Drag and Drop Zóna Stílusok */
+.drop-zone {
+    border: 2px dashed var(--accent-gray);
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--accent-blue);
+    background-color: #e3f2fd;
+}
+
+.drop-zone-text {
+    color: #636e72;
+    font-weight: 500;
+}
