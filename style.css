@@ -472,3 +472,8 @@ body {
 
 .lang-select { padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; font-size: 0.9rem; cursor: pointer; outline: none; transition: var(--transition); margin-right: 12px; }
 .lang-select:hover { border-color: var(--accent-primary); }
+
+/* Watermark UI */
+.watermark-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.wm-preview { background: var(--bg-tertiary); padding: 16px; border-radius: var(--radius-md); display: flex; justify-content: center; align-items: center; min-height: 300px; }
+@media (max-width: 768px) { .watermark-layout { grid-template-columns: 1fr; } }

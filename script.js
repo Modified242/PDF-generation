@@ -72,11 +72,160 @@ function loadSettings() { const saved = localStorage.getItem('prokonvert-setting
 function saveSettings() { if (els.jpgQuality) state.settings.jpgQuality = parseInt(els.jpgQuality.value) / 100; if (els.pdfDpi) state.settings.pdfDpi = parseInt(els.pdfDpi.value); if (els.webpQuality) state.settings.webpQuality = parseInt(els.webpQuality.value) / 100; if (els.autoDownload) state.settings.autoDownload = els.autoDownload.checked; localStorage.setItem('prokonvert-settings', JSON.stringify(state.settings)); }
 els.settingsBtn.addEventListener('click', () => els.settingsModal.classList.add('active')); els.closeSettings.addEventListener('click', () => els.settingsModal.classList.remove('active')); els.settingsModal.addEventListener('click', (e) => { if (e.target === els.settingsModal) els.settingsModal.classList.remove('active'); }); if (els.jpgQuality) els.jpgQuality.addEventListener('input', () => { els.jpgQualityValue.textContent = els.jpgQuality.value + '%'; saveSettings(); }); if (els.pdfDpi) els.pdfDpi.addEventListener('input', () => { els.pdfDpiValue.textContent = els.pdfDpi.value + ' DPI'; saveSettings(); }); if (els.webpQuality) els.webpQuality.addEventListener('input', () => { els.webpQualityValue.textContent = els.webpQuality.value + '%'; saveSettings(); }); if (els.autoDownload) els.autoDownload.addEventListener('change', saveSettings);
 function downloadBlob(pdfBytes, filename) { if (!state.settings.autoDownload) return; const blob = new Blob([pdfBytes], { type: 'application/pdf' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); }
-els.convertAllBtn.addEventListener('click', async () => { if (state.files.length === 0) { showToast(t('toast_no_files'), 'warning'); return; } if (state.processing) return; state.processing = true; els.convertAllBtn.disabled = true; els.convertBtnText.textContent = t('processing'); document.querySelector('#convertAllBtn svg').style.display = 'none'; try { if (state.mode === 'pdfToJpg') await processPdfToJpg(); else if (state.mode === 'jpgToPdf') await processJpgToPdf(); else if (state.mode === 'imgToWebp') await processImgToWebp(); else if (state.mode === 'mergePdf') await processMergePdf(); else if (state.mode === 'splitPdf') await processSplitPdf(); else if (state.mode === 'rotatePdf') await processRotatePdf(); else if (state.mode === 'watermarkPdf') await processWatermarkPdf(); else if (state.mode === 'protectPdf') await processProtectPdf(); else if (state.mode === 'unlockPdf') await processUnlockPdf(); else if (state.mode === 'pageNumbersPdf') await processPageNumbersPdf(); } catch (err) { showToast(t('toast_error') + err.message, 'error'); } finally { state.processing = false; els.convertAllBtn.disabled = false; els.convertBtnText.textContent = t(modeConfig[state.mode].titleKey); document.querySelector('#convertAllBtn svg').style.display = 'block'; } });
+els.convertAllBtn.addEventListener('click', async () => { if (state.files.length === 0) { showToast(t('toast_no_files'), 'warning'); return; } if (state.processing) return; state.processing = true; els.convertAllBtn.disabled = true; els.convertBtnText.textContent = t('processing'); document.querySelector('#convertAllBtn svg').style.display = 'none'; try { if (state.mode === 'pdfToJpg') await processPdfToJpg(); else if (state.mode === 'jpgToPdf') await processJpgToPdf(); else if (state.mode === 'imgToWebp') await processImgToWebp(); else if (state.mode === 'mergePdf') await processMergePdf(); else if (state.mode === 'splitPdf') await processSplitPdf(); else if (state.mode === 'rotatePdf') await processRotatePdf(); else if (state.mode === 'watermarkPdf') { 
+            state.processing = false; 
+            els.convertAllBtn.disabled = false; 
+            els.convertBtnText.textContent = t(modeConfig[state.mode].titleKey); 
+            document.querySelector('#convertAllBtn svg').style.display = 'block'; 
+            openWatermarkModal(); 
+            return; 
+        } else if (state.mode === 'protectPdf') await processProtectPdf(); else if (state.mode === 'unlockPdf') await processUnlockPdf(); else if (state.mode === 'pageNumbersPdf') await processPageNumbersPdf(); } catch (err) { showToast(t('toast_error') + err.message, 'error'); } finally { state.processing = false; els.convertAllBtn.disabled = false; els.convertBtnText.textContent = t(modeConfig[state.mode].titleKey); document.querySelector('#convertAllBtn svg').style.display = 'block'; } });
 async function processMergePdf() { if (state.files.length < 2) return; setFileStatus(0, 'processing'); updateProgress(0, 10); const mergedPdf = await PDFLib.PDFDocument.create(); let totalPages = 0; for (let i = 0; i < state.files.length; i++) { updateProgress(0, 10 + ((i / state.files.length) * 80)); setFileStatus(i, 'processing'); const pdf = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices()); copiedPages.forEach((page) => mergedPdf.addPage(page)); totalPages += copiedPages.length; setFileStatus(i, 'completed'); } updateProgress(0, 95); downloadBlob(await mergedPdf.save(), 'merged_document.pdf'); updateProgress(0, 100); showToast(t('toast_success'), 'success'); }
 async function processSplitPdf() { let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); updateProgress(i, 10); const pdf = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); const numPages = pdf.getPageCount(); for (let p = 0; p < numPages; p++) { const newPdf = await PDFLib.PDFDocument.create(); const [copiedPage] = await newPdf.copyPages(pdf, [p]); newPdf.addPage(copiedPage); downloadBlob(await newPdf.save(), state.files[i].name.replace('.pdf', '_page_' + (p + 1) + '.pdf')); updateProgress(i, 10 + (((p + 1) / numPages) * 90)); } setFileStatus(i, 'completed'); converted += numPages; } showToast(t('toast_success'), 'success'); }
 async function processRotatePdf() { let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); updateProgress(i, 50); const pdfDoc = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); pdfDoc.getPages().forEach(page => page.setRotation(PDFLib.degrees(page.getRotation().angle + 90))); downloadBlob(await pdfDoc.save(), state.files[i].name.replace('.pdf', '_rotated.pdf')); setFileStatus(i, 'completed'); updateProgress(i, 100); converted++; } showToast(t('toast_success'), 'success'); }
-async function processWatermarkPdf() { const watermarkText = prompt(t('prompt_watermark')); if (!watermarkText) return; let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); updateProgress(i, 50); const pdfDoc = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); pdfDoc.getPages().forEach(page => { const { width, height } = page.getSize(); page.drawText(watermarkText, { x: width / 2 - (watermarkText.length * 15), y: height / 2, size: 60, color: PDFLib.rgb(0.8, 0.2, 0.2), rotate: PDFLib.degrees(45), opacity: 0.3 }); }); downloadBlob(await pdfDoc.save(), state.files[i].name.replace('.pdf', '_watermark.pdf')); setFileStatus(i, 'completed'); updateProgress(i, 100); converted++; } showToast(t('toast_success'), 'success'); }
+
+let wmBgCanvas = document.createElement('canvas');
+let wmImageObj = null;
+
+async function openWatermarkModal() {
+    document.getElementById('watermarkModal').classList.add('active');
+    
+    // Alapértelmezett vászon ürítése
+    const canvas = document.getElementById('wmPreviewCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Első oldal renderelése pdf.js segítségével a háttér vászonra
+    const file = state.files[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const wmBasePage = await pdf.getPage(1);
+    
+    const viewport = wmBasePage.getViewport({ scale: 1.0 });
+    const scale = 400 / viewport.width; 
+    const scaledViewport = wmBasePage.getViewport({ scale });
+    
+    wmBgCanvas.width = scaledViewport.width;
+    wmBgCanvas.height = scaledViewport.height;
+    const ctxBg = wmBgCanvas.getContext('2d');
+    await wmBasePage.render({ canvasContext: ctxBg, viewport: scaledViewport }).promise;
+    
+    renderWatermarkPreview();
+}
+
+function renderWatermarkPreview() {
+    const canvas = document.getElementById('wmPreviewCanvas');
+    canvas.width = wmBgCanvas.width;
+    canvas.height = wmBgCanvas.height;
+    const ctx = canvas.getContext('2d');
+    
+    // Háttér PDF oldal kirajzolása
+    ctx.drawImage(wmBgCanvas, 0, 0);
+    
+    // Vízjel kép ráfestése
+    if (wmImageObj) {
+        const xPct = document.getElementById('wmX').value / 100;
+        const yPct = document.getElementById('wmY').value / 100;
+        const sizePct = document.getElementById('wmSize').value / 100;
+        const opacity = document.getElementById('wmOpacity').value / 100;
+        
+        const wmWidth = canvas.width * sizePct;
+        const wmHeight = (wmWidth / wmImageObj.width) * wmImageObj.height;
+        const x = xPct * (canvas.width - wmWidth);
+        const y = yPct * (canvas.height - wmHeight);
+        
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(wmImageObj, x, y, wmWidth, wmHeight);
+        ctx.globalAlpha = 1.0;
+    }
+}
+
+document.getElementById('wmImageInput')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        wmImageObj = new Image();
+        wmImageObj.onload = renderWatermarkPreview;
+        wmImageObj.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+['wmX', 'wmY', 'wmSize', 'wmOpacity'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', renderWatermarkPreview);
+});
+
+document.getElementById('closeWatermark')?.addEventListener('click', () => {
+    document.getElementById('watermarkModal').classList.remove('active');
+});
+
+document.getElementById('applyWatermarkBtn')?.addEventListener('click', async () => {
+    const wmFileInput = document.getElementById('wmImageInput');
+    if(!wmFileInput.files.length) {
+        showToast('Kérlek válassz ki egy vízjel képet (PNG/JPG)!', 'warning');
+        return;
+    }
+    
+    document.getElementById('watermarkModal').classList.remove('active');
+    
+    els.convertAllBtn.disabled = true;
+    els.convertBtnText.textContent = t('processing');
+    state.processing = true;
+
+    const wmFile = wmFileInput.files[0];
+    const wmBytes = await wmFile.arrayBuffer();
+    
+    const xPct = document.getElementById('wmX').value / 100;
+    const yPctHTML = document.getElementById('wmY').value / 100;
+    const sizePct = document.getElementById('wmSize').value / 100;
+    const opacity = document.getElementById('wmOpacity').value / 100;
+    
+    let converted = 0;
+    for (let i = 0; i < state.files.length; i++) {
+        setFileStatus(i, 'processing');
+        updateProgress(i, 20);
+        try {
+            const pdfBytes = await state.files[i].arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+            
+            let wmImage;
+            if(wmFile.type === 'image/png') wmImage = await pdfDoc.embedPng(wmBytes);
+            else wmImage = await pdfDoc.embedJpg(wmBytes);
+            
+            const pages = pdfDoc.getPages();
+            
+            for(let p = 0; p < pages.length; p++) {
+                updateProgress(i, 20 + ((p / pages.length) * 70));
+                const page = pages[p];
+                const { width, height } = page.getSize();
+                
+                const wmWidth = width * sizePct;
+                const wmHeight = (wmWidth / wmImage.width) * wmImage.height;
+                const x = xPct * (width - wmWidth);
+                // A PDF koordinátarendszere alulról felfelé épül fel, ezt kompenzáljuk:
+                const y = height - (yPctHTML * (height - wmHeight)) - wmHeight;
+                
+                page.drawImage(wmImage, { x, y, width: wmWidth, height: wmHeight, opacity });
+            }
+            
+            const savedPdf = await pdfDoc.save();
+            downloadBlob(savedPdf, state.files[i].name.replace('.pdf', '_vizjellel.pdf'));
+            setFileStatus(i, 'completed');
+            updateProgress(i, 100);
+            converted++;
+        } catch(err) {
+            setFileStatus(i, 'error');
+            showToast('Hiba: ' + err.message, 'error');
+        }
+    }
+    
+    showToast(t('toast_success'), 'success');
+    state.processing = false;
+    els.convertAllBtn.disabled = false;
+    els.convertBtnText.textContent = t(modeConfig[state.mode].titleKey);
+});
+
 async function processProtectPdf() { const password = prompt(t('prompt_protect')); if (!password) return; let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); updateProgress(i, 50); const pdfDoc = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); const savedPdf = await pdfDoc.save({ userPassword: password, ownerPassword: password, permissions: { printing: 'highResolution', modifying: false, copying: false } }); downloadBlob(savedPdf, state.files[i].name.replace('.pdf', '_protected.pdf')); setFileStatus(i, 'completed'); updateProgress(i, 100); converted++; } showToast(t('toast_success'), 'success'); }
 async function processUnlockPdf() { const password = prompt(t('prompt_unlock')); if (!password) return; let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); updateProgress(i, 50); try { const pdfDoc = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer(), { password: password }); downloadBlob(await pdfDoc.save(), state.files[i].name.replace('.pdf', '_unlocked.pdf')); setFileStatus(i, 'completed'); updateProgress(i, 100); converted++; } catch (e) { setFileStatus(i, 'error'); showToast(t('toast_error') + ' Wrong password', 'error'); } } if (converted > 0) showToast(t('toast_success'), 'success'); }
 async function processPageNumbersPdf() { let converted = 0; for (let i = 0; i < state.files.length; i++) { setFileStatus(i, 'processing'); const pdfDoc = await PDFLib.PDFDocument.load(await state.files[i].arrayBuffer()); const pages = pdfDoc.getPages(); for(let p = 0; p < pages.length; p++) { updateProgress(i, ((p+1) / pages.length) * 80); const page = pages[p]; const { width } = page.getSize(); page.drawText(String(p + 1), { x: width / 2, y: 20, size: 12, color: PDFLib.rgb(0.1, 0.1, 0.1) }); } updateProgress(i, 90); downloadBlob(await pdfDoc.save(), state.files[i].name.replace('.pdf', '_numbered.pdf')); setFileStatus(i, 'completed'); updateProgress(i, 100); converted++; } showToast(t('toast_success'), 'success'); }
