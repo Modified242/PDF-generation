@@ -55,6 +55,8 @@ function renderToolsGrid() {
 function setMode(mode) {
   state.mode = mode; const config = modeConfig[mode]; els.pageTitle.textContent = t(config.titleKey); els.pageDesc.textContent = t(config.descKey);
   if (mode === 'qrCode') { els.converterSection.style.display = 'none'; els.qrSection.style.display = 'block'; } else { els.converterSection.style.display = 'block'; els.qrSection.style.display = 'none'; els.fileInput.accept = config.accept; els.fileInput.multiple = config.multiple; els.convertBtnText.textContent = t(config.titleKey); }
+  const wmPanel = document.getElementById('watermarkPanel');
+  if (wmPanel) wmPanel.style.display = (mode === 'watermarkPdf') ? 'block' : 'none';
   clearFiles(); els.homeView.style.display = 'none'; els.toolView.style.display = 'block'; window.scrollTo(0, 0);
 }
 function goHome() { els.toolView.style.display = 'none'; els.homeView.style.display = 'block'; clearFiles(); } els.backToHomeBtn.addEventListener('click', goHome); els.homeLogo.addEventListener('click', goHome);
@@ -241,3 +243,191 @@ els.downloadQrBtn.addEventListener('click', () => { const img = els.qrPreviewBox
 els.copyQrBtn.addEventListener('click', async () => { const img = els.qrPreviewBox.querySelector('img'); const canvas = els.qrPreviewBox.querySelector('canvas'); try { let blob; if (canvas) blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png')); else if (img) { const response = await fetch(img.src); blob = await response.blob(); } if (blob) { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); showToast(t('toast_success'), 'success'); } } catch (err) { showToast(t('toast_error') + err.message, 'error'); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { els.settingsModal.classList.remove('active'); els.previewModal.classList.remove('active'); } if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') if (state.mode !== 'qrCode' && state.mode !== '' && state.files.length > 0) els.convertAllBtn.click(); });
 initTheme(); loadSettings(); updateLanguageUI();
+// ==========================================
+// ADVANCED WATERMARK LOGIC
+// ==========================================
+let wmType = 'text'; // 'text' vagy 'image'
+let wmOffscreenCanvas = document.createElement('canvas');
+let isWmPdfLoaded = false;
+let wmImgObj = null;
+
+document.getElementById('wmTabText')?.addEventListener('click', (e) => {
+    wmType = 'text';
+    e.target.classList.replace('btn-outline', 'btn-primary');
+    document.getElementById('wmTabImage').classList.replace('btn-primary', 'btn-outline');
+    document.getElementById('wmTextSection').style.display = 'block';
+    document.getElementById('wmImageSection').style.display = 'none';
+    updateWmPreview();
+});
+
+document.getElementById('wmTabImage')?.addEventListener('click', (e) => {
+    wmType = 'image';
+    e.target.classList.replace('btn-outline', 'btn-primary');
+    document.getElementById('wmTabText').classList.replace('btn-primary', 'btn-outline');
+    document.getElementById('wmTextSection').style.display = 'none';
+    document.getElementById('wmImageSection').style.display = 'block';
+    updateWmPreview();
+});
+
+document.getElementById('wmImageFile')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            wmImgObj = new Image();
+            wmImgObj.onload = updateWmPreview;
+            wmImgObj.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('wmPreviewBtn')?.addEventListener('click', async () => {
+    if (state.files.length === 0) {
+        showToast('Kérlek tölts fel egy PDF-et először a vázlathoz!', 'warning');
+        return;
+    }
+    document.getElementById('wmPreviewBtn').textContent = "Betöltés...";
+    try {
+        const arrayBuffer = await state.files[0].arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.2 });
+        
+        wmOffscreenCanvas.width = viewport.width;
+        wmOffscreenCanvas.height = viewport.height;
+        await page.render({ canvasContext: wmOffscreenCanvas.getContext('2d'), viewport }).promise;
+        isWmPdfLoaded = true;
+        updateWmPreview();
+    } catch(err) {
+        showToast('Hiba az előnézet betöltésekor.', 'error');
+    }
+    document.getElementById('wmPreviewBtn').textContent = "Előnézet Frissítése";
+});
+
+// Csúszkák mozdításakor élőben frissüljön a kép
+['wmX', 'wmY', 'wmSize', 'wmRot', 'wmOpac', 'wmText', 'wmColor'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateWmPreview);
+});
+
+function updateWmPreview() {
+    if (!isWmPdfLoaded) return;
+    const canvas = document.getElementById('wmCanvas');
+    canvas.style.display = 'inline-block';
+    canvas.width = wmOffscreenCanvas.width;
+    canvas.height = wmOffscreenCanvas.height;
+    const ctx = canvas.getContext('2d');
+    
+    // Alap PDF oldal rárajzolása
+    ctx.drawImage(wmOffscreenCanvas, 0, 0);
+    
+    // Vízjel adatok lekérése
+    const xPct = document.getElementById('wmX').value / 100;
+    const yPct = document.getElementById('wmY').value / 100;
+    const sizePct = document.getElementById('wmSize').value / 100;
+    const rot = document.getElementById('wmRot').value * (Math.PI / 180);
+    const opac = document.getElementById('wmOpac').value / 100;
+
+    ctx.globalAlpha = opac;
+
+    if (wmType === 'text') {
+        const text = document.getElementById('wmText').value;
+        const color = document.getElementById('wmColor').value;
+        ctx.fillStyle = color;
+        ctx.font = `${canvas.width * sizePct * 0.5}px Arial`; 
+        ctx.translate(canvas.width * xPct, canvas.height * yPct);
+        ctx.rotate(rot);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 0, 0);
+    } else if (wmType === 'image' && wmImgObj) {
+        const imgW = canvas.width * sizePct;
+        const imgH = (imgW / wmImgObj.width) * wmImgObj.height;
+        ctx.translate(canvas.width * xPct, canvas.height * yPct);
+        ctx.rotate(rot);
+        ctx.drawImage(wmImgObj, -imgW/2, -imgH/2, imgW, imgH);
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+async function processWatermarkPdf() {
+    let converted = 0;
+    
+    // UI Értékek lekérése
+    const xPct = document.getElementById('wmX').value / 100;
+    const yPctHTML = document.getElementById('wmY').value / 100; 
+    const sizePct = document.getElementById('wmSize').value / 100;
+    const rotDegrees = parseInt(document.getElementById('wmRot').value);
+    const opac = document.getElementById('wmOpac').value / 100;
+    
+    let wmImageBytes = null;
+    let wmFile = document.getElementById('wmImageFile')?.files[0];
+    if (wmType === 'image' && wmFile) {
+        wmImageBytes = await wmFile.arrayBuffer();
+    }
+
+    for (let i = 0; i < state.files.length; i++) {
+        setFileStatus(i, 'processing');
+        updateProgress(i, 20);
+        try {
+            const pdfBytes = await state.files[i].arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+            const pages = pdfDoc.getPages();
+            
+            // Kép beágyazása, ha szükséges
+            let embeddedImage = null;
+            if (wmType === 'image' && wmImageBytes) {
+                if (wmFile.type === 'image/png') embeddedImage = await pdfDoc.embedPng(wmImageBytes);
+                else embeddedImage = await pdfDoc.embedJpg(wmImageBytes);
+            }
+
+            pages.forEach(page => {
+                const { width, height } = page.getSize();
+                // A pdf-lib-ben az Y koordináta alulról indul! (Ezt megfordítjuk, hogy egyezzen a csúszkával)
+                const x = width * xPct;
+                const y = height - (height * yPctHTML); 
+
+                if (wmType === 'text') {
+                    const text = document.getElementById('wmText').value || ' ';
+                    const hex = document.getElementById('wmColor').value || '#000000';
+                    const r = parseInt(hex.substring(1,3), 16)/255;
+                    const g = parseInt(hex.substring(3,5), 16)/255;
+                    const b = parseInt(hex.substring(5,7), 16)/255;
+                    
+                    const fontSize = width * sizePct * 0.5;
+                    page.drawText(text, {
+                        x: x,
+                        y: y,
+                        size: fontSize,
+                        color: PDFLib.rgb(r, g, b),
+                        rotate: PDFLib.degrees(-rotDegrees), // Forgatás iránya
+                        opacity: opac,
+                    });
+                } else if (wmType === 'image' && embeddedImage) {
+                    const imgW = width * sizePct;
+                    const imgH = (imgW / embeddedImage.width) * embeddedImage.height;
+                    
+                    page.drawImage(embeddedImage, {
+                        x: x - (imgW/2), 
+                        y: y - (imgH/2), 
+                        width: imgW,
+                        height: imgH,
+                        rotate: PDFLib.degrees(-rotDegrees),
+                        opacity: opac,
+                    });
+                }
+            });
+            
+            const savedPdf = await pdfDoc.save();
+            downloadBlob(savedPdf, state.files[i].name.replace('.pdf', '_vizjellel.pdf'));
+            setFileStatus(i, 'completed');
+            updateProgress(i, 100);
+            converted++;
+        } catch(e) {
+            setFileStatus(i, 'error');
+            console.error(e);
+        }
+    }
+    showToast(t('toast_success'), 'success');
+}

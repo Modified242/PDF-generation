@@ -93,6 +93,57 @@
                     <input type="file" id="fileInput" multiple style="display: none;">
                 </div>
                 <div class="file-list" id="fileList"></div>
+                
+                <!-- Advanced Watermark Panel -->
+                <div id="watermarkPanel" style="display: none; margin-top: 24px; padding: 24px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                    <h3 style="margin-bottom: 16px;">Vízjel Beállítások</h3>
+                    
+                    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                        <button class="btn btn-primary" id="wmTabText">Szöveg beírása</button>
+                        <button class="btn btn-outline" id="wmTabImage">Kép feltöltése (PNG/JPG)</button>
+                    </div>
+                    
+                    <!-- Text Settings -->
+                    <div id="wmTextSection">
+                        <div class="control-group">
+                            <label>Vízjel Szövege</label>
+                            <input type="text" id="wmText" value="PISZKOZAT" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                        </div>
+                        <div class="control-group" style="margin-top: 12px;">
+                            <label>Szín</label><br>
+                            <input type="color" id="wmColor" value="#ef4444" style="width: 60px; height: 40px; cursor: pointer; border: none; border-radius: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Image Settings -->
+                    <div id="wmImageSection" style="display: none;">
+                        <div class="control-group">
+                            <label>Saját Kép Fájl (Logó)</label>
+                            <input type="file" id="wmImageFile" accept="image/png, image/jpeg" style="width: 100%; padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-color);">
+                        </div>
+                    </div>
+
+                    <!-- Common Controls -->
+                    <div class="control-row" style="margin-top: 24px;">
+                        <div class="control-group"><label>Pozíció X (%)</label><input type="range" id="wmX" min="0" max="100" value="50" class="slider"></div>
+                        <div class="control-group"><label>Pozíció Y (%)</label><input type="range" id="wmY" min="0" max="100" value="50" class="slider"></div>
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group"><label>Méret / Skálázás</label><input type="range" id="wmSize" min="10" max="300" value="100" class="slider"></div>
+                        <div class="control-group"><label>Forgatás (fok)</label><input type="range" id="wmRot" min="-180" max="180" value="45" class="slider"></div>
+                    </div>
+                    <div class="control-group"><label>Átlátszóság (%)</label><input type="range" id="wmOpac" min="10" max="100" value="30" class="slider"></div>
+                    
+                    <!-- Preview Area -->
+                    <button class="btn btn-outline btn-full" id="wmPreviewBtn" style="margin-top: 16px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Élő előnézet generálása (PDF feltöltése után)
+                    </button>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <canvas id="wmCanvas" style="max-width: 100%; border: 1px dashed var(--border-color); border-radius: 4px; display: none; box-shadow: var(--shadow-sm);"></canvas>
+                    </div>
+                </div>
+
                 <div class="batch-actions" id="batchActions" style="display: none;">
                     <div class="batch-info"><span id="batchCount">0 files</span><span id="batchSize">0 MB</span></div>
                     <div class="batch-buttons">
