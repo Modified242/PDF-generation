@@ -8,10 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    
     <meta name="description" content="Ingyenes, böngészőben futó PDF és képkonvertáló. PDF egyesítés, darabolás, forgatás, vízjelezés, titkosítás és QR kód generálás szerver feltöltés nélkül.">
     <meta name="keywords" content="PDF konvertáló, PDF egyesítés, PDF darabolás, képből PDF, QR kód generátor, ingyenes PDF eszközök">
     <meta name="author" content="ProConvert">
@@ -56,7 +57,6 @@
                 <option value="es">🇪🇸 ES</option>
                 <option value="fr">🇫🇷 FR</option>
             </select>
-            <h1>PIZDEC</h1>
             <button class="theme-toggle" id="themeToggle" title="Theme toggle">
                 <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -97,21 +97,21 @@
                 
                 <!-- Advanced Watermark Panel -->
                 <div id="watermarkPanel" style="display: none; margin-top: 24px; padding: 24px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <h3 style="margin-bottom: 16px;">Vízjel Beállítások</h3>
+                    <h3 style="margin-bottom: 16px;" data-i18n="wm_title">Watermark Settings</h3>
                     
                     <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button class="btn btn-primary" id="wmTabText">Szöveg beírása</button>
-                        <button class="btn btn-outline" id="wmTabImage">Kép feltöltése (PNG/JPG)</button>
+                        <button class="btn btn-primary" id="wmTabText" data-i18n="wm_tab_text">Enter Text</button>
+                        <button class="btn btn-outline" id="wmTabImage" data-i18n="wm_tab_image">Upload Image (PNG/JPG)</button>
                     </div>
                     
                     <!-- Text Settings -->
                     <div id="wmTextSection">
                         <div class="control-group">
-                            <label>Vízjel Szövege</label>
-                            <input type="text" id="wmText" value="PISZKOZAT" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                            <label data-i18n="wm_text">Watermark Text</label>
+                            <input type="text" id="wmText" data-i18n-value="wm_draft" value="DRAFT" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
                         </div>
                         <div class="control-group" style="margin-top: 12px;">
-                            <label>Szín</label><br>
+                            <label data-i18n="wm_color">Color</label><br>
                             <input type="color" id="wmColor" value="#ef4444" style="width: 60px; height: 40px; cursor: pointer; border: none; border-radius: 4px;">
                         </div>
                     </div>
@@ -119,26 +119,26 @@
                     <!-- Image Settings -->
                     <div id="wmImageSection" style="display: none;">
                         <div class="control-group">
-                            <label>Saját Kép Fájl (Logó)</label>
+                            <label data-i18n="wm_image">Custom Image File (Logo)</label>
                             <input type="file" id="wmImageFile" accept="image/png, image/jpeg" style="width: 100%; padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
                     </div>
 
                     <!-- Common Controls -->
                     <div class="control-row" style="margin-top: 24px;">
-                        <div class="control-group"><label>Pozíció X (%)</label><input type="range" id="wmX" min="0" max="100" value="50" class="slider"></div>
-                        <div class="control-group"><label>Pozíció Y (%)</label><input type="range" id="wmY" min="0" max="100" value="50" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_pos_x">Position X (%)</label><input type="range" id="wmX" min="0" max="100" value="50" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_pos_y">Position Y (%)</label><input type="range" id="wmY" min="0" max="100" value="50" class="slider"></div>
                     </div>
                     <div class="control-row">
-                        <div class="control-group"><label>Méret / Skálázás</label><input type="range" id="wmSize" min="10" max="300" value="100" class="slider"></div>
-                        <div class="control-group"><label>Forgatás (fok)</label><input type="range" id="wmRot" min="-180" max="180" value="45" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_size">Size / Scale</label><input type="range" id="wmSize" min="10" max="300" value="100" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_rot">Rotation (degrees)</label><input type="range" id="wmRot" min="-180" max="180" value="45" class="slider"></div>
                     </div>
-                    <div class="control-group"><label>Átlátszóság (%)</label><input type="range" id="wmOpac" min="10" max="100" value="30" class="slider"></div>
+                    <div class="control-group"><label data-i18n="wm_opac">Opacity (%)</label><input type="range" id="wmOpac" min="10" max="100" value="30" class="slider"></div>
                     
                     <!-- Preview Area -->
                     <button class="btn btn-outline btn-full" id="wmPreviewBtn" style="margin-top: 16px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Élő előnézet generálása (PDF feltöltése után)
+                        <span data-i18n="wm_preview_btn">Generate Live Preview (after uploading PDF)</span>
                     </button>
                     <div style="text-align: center; margin-top: 16px;">
                         <canvas id="wmCanvas" style="max-width: 100%; border: 1px dashed var(--border-color); border-radius: 4px; display: none; box-shadow: var(--shadow-sm);"></canvas>
