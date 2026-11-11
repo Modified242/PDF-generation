@@ -501,3 +501,11 @@ body {
     width: 20px;
     height: 20px;
 }
+.phone-input-wrapper select {
+    outline: none;
+}
+.phone-input-wrapper input[type="tel"]:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+}
