@@ -158,9 +158,10 @@
     <div class="qr-layout">
         <div class="qr-controls">
             <!-- Вкладки типу QR -->
-            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
                 <button class="btn btn-primary" id="qrTabText" data-i18n="qr_tab_text">Text / URL</button>
                 <button class="btn btn-outline" id="qrTabPhone" data-i18n="qr_tab_phone">Phone Call</button>
+                <button class="btn btn-outline" id="qrTabCard" data-i18n="qr_tab_card">Bank Card</button>
             </div>
 
             <!-- Поле вводу Тексту / Посилання -->
@@ -188,6 +189,13 @@
                 </div>
             </div>
 
+            <!-- Поле вводу Банківської картки -->
+            <div id="qrCardSection" class="control-group" style="display: none;">
+                <label data-i18n="qr_card_label">Bank Card Number</label>
+                <input type="text" id="qrCardInput" inputmode="numeric" autocomplete="off" maxlength="23" placeholder="0000 0000 0000 0000" style="width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
+                <div id="qrCardWarning" style="display: none; color: var(--accent-warning); font-size: 0.8rem; margin-top: 6px; font-weight: 500;"></div>
+            </div>
+
             <div class="control-row">
                 <div class="control-group"><label data-i18n="qr_fg">Foreground Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorDark" value="#000000"><span class="color-value">#000000</span></div></div>
                 <div class="control-group"><label data-i18n="qr_bg">Background Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorLight" value="#ffffff"><span class="color-value">#ffffff</span></div></div>
@@ -201,6 +209,8 @@
         
         <div class="qr-preview-panel">
             <div class="qr-preview-box" id="qrPreviewBox"><div class="qr-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><p data-i18n="qr_placeholder">QR code will appear here</p></div></div>
+            <!-- Підказка під кодом для банківської картки -->
+            <p id="qrCardHint" style="display: none; font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 16px;" data-i18n="qr_card_hint">Scan with camera and click "Copy" to save card number</p>
             <div class="qr-actions" id="qrActions" style="display: none;"><button class="btn btn-outline" id="copyQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span data-i18n="qr_copy">Copy</span></button><button class="btn btn-primary" id="downloadQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="qr_dl">Download PNG</span></button></div>
         </div>
     </div>

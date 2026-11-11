@@ -509,3 +509,6 @@ body {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
 }
+#qrCardWarning {
+    transition: var(--transition);
+}
