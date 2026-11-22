@@ -8,10 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    
     <meta name="description" content="Ingyenes, böngészőben futó PDF és képkonvertáló. PDF egyesítés, darabolás, forgatás, vízjelezés, titkosítás és QR kód generálás szerver feltöltés nélkül.">
     <meta name="keywords" content="PDF konvertáló, PDF egyesítés, PDF darabolás, képből PDF, QR kód generátor, ingyenes PDF eszközök">
     <meta name="author" content="ProConvert">
@@ -56,7 +57,6 @@
                 <option value="es">🇪🇸 ES</option>
                 <option value="fr">🇫🇷 FR</option>
             </select>
-            <h1>PIZDEC</h1>
             <button class="theme-toggle" id="themeToggle" title="Theme toggle">
                 <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                 <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -97,21 +97,21 @@
                 
                 <!-- Advanced Watermark Panel -->
                 <div id="watermarkPanel" style="display: none; margin-top: 24px; padding: 24px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-                    <h3 style="margin-bottom: 16px;">Vízjel Beállítások</h3>
+                    <h3 style="margin-bottom: 16px;" data-i18n="wm_title">Watermark Settings</h3>
                     
                     <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                        <button class="btn btn-primary" id="wmTabText">Szöveg beírása</button>
-                        <button class="btn btn-outline" id="wmTabImage">Kép feltöltése (PNG/JPG)</button>
+                        <button class="btn btn-primary" id="wmTabText" data-i18n="wm_tab_text">Enter Text</button>
+                        <button class="btn btn-outline" id="wmTabImage" data-i18n="wm_tab_image">Upload Image (PNG/JPG)</button>
                     </div>
                     
                     <!-- Text Settings -->
                     <div id="wmTextSection">
                         <div class="control-group">
-                            <label>Vízjel Szövege</label>
-                            <input type="text" id="wmText" value="PISZKOZAT" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                            <label data-i18n="wm_text">Watermark Text</label>
+                            <input type="text" id="wmText" data-i18n-value="wm_draft" value="DRAFT" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
                         </div>
                         <div class="control-group" style="margin-top: 12px;">
-                            <label>Szín</label><br>
+                            <label data-i18n="wm_color">Color</label><br>
                             <input type="color" id="wmColor" value="#ef4444" style="width: 60px; height: 40px; cursor: pointer; border: none; border-radius: 4px;">
                         </div>
                     </div>
@@ -119,26 +119,26 @@
                     <!-- Image Settings -->
                     <div id="wmImageSection" style="display: none;">
                         <div class="control-group">
-                            <label>Saját Kép Fájl (Logó)</label>
+                            <label data-i18n="wm_image">Custom Image File (Logo)</label>
                             <input type="file" id="wmImageFile" accept="image/png, image/jpeg" style="width: 100%; padding: 10px; background: var(--bg-secondary); border-radius: 4px; border: 1px solid var(--border-color);">
                         </div>
                     </div>
 
                     <!-- Common Controls -->
                     <div class="control-row" style="margin-top: 24px;">
-                        <div class="control-group"><label>Pozíció X (%)</label><input type="range" id="wmX" min="0" max="100" value="50" class="slider"></div>
-                        <div class="control-group"><label>Pozíció Y (%)</label><input type="range" id="wmY" min="0" max="100" value="50" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_pos_x">Position X (%)</label><input type="range" id="wmX" min="0" max="100" value="50" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_pos_y">Position Y (%)</label><input type="range" id="wmY" min="0" max="100" value="50" class="slider"></div>
                     </div>
                     <div class="control-row">
-                        <div class="control-group"><label>Méret / Skálázás</label><input type="range" id="wmSize" min="10" max="300" value="100" class="slider"></div>
-                        <div class="control-group"><label>Forgatás (fok)</label><input type="range" id="wmRot" min="-180" max="180" value="45" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_size">Size / Scale</label><input type="range" id="wmSize" min="10" max="300" value="100" class="slider"></div>
+                        <div class="control-group"><label data-i18n="wm_rot">Rotation (degrees)</label><input type="range" id="wmRot" min="-180" max="180" value="45" class="slider"></div>
                     </div>
-                    <div class="control-group"><label>Átlátszóság (%)</label><input type="range" id="wmOpac" min="10" max="100" value="30" class="slider"></div>
+                    <div class="control-group"><label data-i18n="wm_opac">Opacity (%)</label><input type="range" id="wmOpac" min="10" max="100" value="30" class="slider"></div>
                     
                     <!-- Preview Area -->
                     <button class="btn btn-outline btn-full" id="wmPreviewBtn" style="margin-top: 16px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Élő előnézet generálása (PDF feltöltése után)
+                        <span data-i18n="wm_preview_btn">Generate Live Preview (after uploading PDF)</span>
                     </button>
                     <div style="text-align: center; margin-top: 16px;">
                         <canvas id="wmCanvas" style="max-width: 100%; border: 1px dashed var(--border-color); border-radius: 4px; display: none; box-shadow: var(--shadow-sm);"></canvas>
@@ -155,25 +155,66 @@
             </section>
 
             <section id="qrSection" style="display: none;">
-                <div class="qr-layout">
-                    <div class="qr-controls">
-                        <div class="control-group"><label data-i18n="qr_content">Content</label><textarea id="qrInputData" data-i18n-placeholder="qr_placeholder" rows="4"></textarea></div>
-                        <div class="control-row">
-                            <div class="control-group"><label data-i18n="qr_fg">Foreground Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorDark" value="#000000"><span class="color-value">#000000</span></div></div>
-                            <div class="control-group"><label data-i18n="qr_bg">Background Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorLight" value="#ffffff"><span class="color-value">#ffffff</span></div></div>
-                        </div>
-                        <div class="control-row">
-                            <div class="control-group"><label data-i18n="qr_size">Size (px)</label><input type="range" id="qrSize" min="100" max="600" value="300" class="slider"><span class="slider-value" id="qrSizeValue">300px</span></div>
-                            <div class="control-group"><label data-i18n="qr_err">Error Correction</label><select id="qrErrorLevel"><option value="1">Low (L)</option><option value="0">Medium (M)</option><option value="3">Quartile (Q)</option><option value="2" selected>High (H)</option></select></div>
-                        </div>
-                        <button class="btn btn-primary btn-full" id="generateQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> <span data-i18n="generate_qr">Generate QR Code</span></button>
-                    </div>
-                    <div class="qr-preview-panel">
-                        <div class="qr-preview-box" id="qrPreviewBox"><div class="qr-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><p data-i18n="qr_placeholder">QR code will appear here</p></div></div>
-                        <div class="qr-actions" id="qrActions" style="display: none;"><button class="btn btn-outline" id="copyQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span data-i18n="qr_copy">Copy</span></button><button class="btn btn-primary" id="downloadQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="qr_dl">Download PNG</span></button></div>
-                    </div>
+    <div class="qr-layout">
+        <div class="qr-controls">
+            <!-- Вкладки типу QR -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <button class="btn btn-primary" id="qrTabText" data-i18n="qr_tab_text">Text / URL</button>
+                <button class="btn btn-outline" id="qrTabPhone" data-i18n="qr_tab_phone">Phone Call</button>
+                <button class="btn btn-outline" id="qrTabCard" data-i18n="qr_tab_card">Bank Card</button>
+            </div>
+
+            <!-- Поле вводу Тексту / Посилання -->
+            <div id="qrTextSection" class="control-group">
+                <label data-i18n="qr_content">Content</label>
+                <textarea id="qrInputData" data-i18n-placeholder="qr_placeholder" rows="4"></textarea>
+            </div>
+
+            <!-- Поле вводу Телефону з вибором країни -->
+            <div id="qrPhoneSection" class="control-group" style="display: none;">
+                <label data-i18n="qr_phone_label">Phone Number</label>
+                <div class="phone-input-wrapper" style="display: flex; gap: 8px;">
+                    <select id="qrCountryCode" class="lang-select" style="margin-right: 0; min-width: 125px;">
+                        <option value="+380">🇺🇦 +380</option>
+                        <option value="+36">🇭🇺 +36</option>
+                        <option value="+49">🇩🇪 +49</option>
+                        <option value="+48">🇵🇱 +48</option>
+                        <option value="+44">🇬🇧 +44</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+40">🇷🇴 +40</option>
+                        <option value="+421">🇸🇰 +421</option>
+                        <option value="">🌐 Manual</option>
+                    </select>
+                    <input type="tel" id="qrPhoneInput" placeholder="961234567" style="flex: 1; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
                 </div>
-            </section>
+            </div>
+
+            <!-- Поле вводу Банківської картки -->
+            <div id="qrCardSection" class="control-group" style="display: none;">
+                <label data-i18n="qr_card_label">Bank Card Number</label>
+                <input type="text" id="qrCardInput" inputmode="numeric" autocomplete="off" maxlength="23" placeholder="0000 0000 0000 0000" style="width: 100%; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
+                <div id="qrCardWarning" style="display: none; color: var(--accent-warning); font-size: 0.8rem; margin-top: 6px; font-weight: 500;"></div>
+            </div>
+
+            <div class="control-row">
+                <div class="control-group"><label data-i18n="qr_fg">Foreground Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorDark" value="#000000"><span class="color-value">#000000</span></div></div>
+                <div class="control-group"><label data-i18n="qr_bg">Background Color</label><div class="color-picker-wrapper"><input type="color" id="qrColorLight" value="#ffffff"><span class="color-value">#ffffff</span></div></div>
+            </div>
+            <div class="control-row">
+                <div class="control-group"><label data-i18n="qr_size">Size (px)</label><input type="range" id="qrSize" min="100" max="600" value="300" class="slider"><span class="slider-value" id="qrSizeValue">300px</span></div>
+                <div class="control-group"><label data-i18n="qr_err">Error Correction</label><select id="qrErrorLevel"><option value="1">Low (L)</option><option value="0">Medium (M)</option><option value="3">Quartile (Q)</option><option value="2" selected>High (H)</option></select></div>
+            </div>
+            <button class="btn btn-primary btn-full" id="generateQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> <span data-i18n="generate_qr">Generate QR Code</span></button>
+        </div>
+        
+        <div class="qr-preview-panel">
+            <div class="qr-preview-box" id="qrPreviewBox"><div class="qr-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><p data-i18n="qr_placeholder">QR code will appear here</p></div></div>
+            <!-- Підказка під кодом для банківської картки -->
+            <p id="qrCardHint" style="display: none; font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 16px;" data-i18n="qr_card_hint">Scan with camera and click "Copy" to save card number</p>
+            <div class="qr-actions" id="qrActions" style="display: none;"><button class="btn btn-outline" id="copyQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span data-i18n="qr_copy">Copy</span></button><button class="btn btn-primary" id="downloadQrBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span data-i18n="qr_dl">Download PNG</span></button></div>
+        </div>
+    </div>
+</section>
         </div>
     </main>
 
